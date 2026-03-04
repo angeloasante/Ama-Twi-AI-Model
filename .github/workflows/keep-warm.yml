@@ -16,5 +16,5 @@ jobs:
         run: |
           echo "Pinging Modal to keep warm..."
           curl -s -o /dev/null -w "Status: %{http_code}, Time: %{time_total}s\n" \
-            https://angeloasante--twi-ai-agent-v3-health.modal.run
+            https://angeloasante--twi-ai-agent-v3-twiagent-agent.modal.run
           echo "Done!"
