@@ -1,6 +1,7 @@
 """
 Cog prediction interface for Twi AI (Ama)
 A bilingual Twi-English conversational AI assistant
+Version: 1.0.1
 """
 
 from cog import BasePredictor, Input, ConcatenateIterator

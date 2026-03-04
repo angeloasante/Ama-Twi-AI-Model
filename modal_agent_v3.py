@@ -17,7 +17,7 @@ app = modal.App("twi-ai-agent-v3")
 
 # Model configuration
 MODEL_ID = "travis-moore/twi-llama-v5"
-GPU_CONFIG = modal.gpu.A100(size="40GB")
+GPU_CONFIG = "A100-40GB"
 
 # Create Modal image with all dependencies
 image = (
@@ -442,7 +442,7 @@ def detect_intent(message: str) -> dict:
         modal.Secret.from_name("tavily"),
     ],
     timeout=600,
-    scaledown_window=300,
+    scaledown_window=300,  # 5 min idle before shutdown
 )
 class TwiAgent:
     """Unified Twi AI Agent with all tools."""
@@ -653,7 +653,7 @@ class TwiAgent:
         }
 
 
-# Health check endpoint
+# Health check endpoint - accepts GET and HEAD for uptime monitors
 @app.function(image=image)
 @modal.fastapi_endpoint(method="GET")
 def health():
@@ -673,6 +673,12 @@ def health():
         ],
         "available_timezones": list(TIMEZONE_ALIASES.keys())
     }
+
+@app.function(image=image)
+@modal.fastapi_endpoint(method="HEAD")
+def health_head():
+    """Health check endpoint for HEAD requests (uptime monitors)."""
+    return {"status": "healthy"}
 
 
 # CLI for local testing
