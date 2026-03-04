@@ -468,13 +468,37 @@ When multiple tools are detected, they all execute and their results are combine
 
 ## API Specification
 
-### Endpoint
+### Endpoints
 
-```
-POST https://angeloasante--twi-ai-agent-v3-twiagent-agent.modal.run
+Twi AI is available via two deployment options:
+
+| Endpoint | URL | Best For |
+|----------|-----|----------|
+| **HuggingFace** (Recommended) | `https://vs68t0qrfr3hsfp3.us-east-1.aws.endpoints.huggingface.cloud` | Production, lower cost |
+| **Modal** | `https://angeloasante--twi-ai-agent-v3-twiagent-agent.modal.run` | Development, testing |
+
+### HuggingFace Request Schema
+
+```json
+{
+  "inputs": "string (the user message)",
+  "parameters": {
+    "timezone": "string (optional, default: UTC)",
+    "action": "string (optional, for explicit actions)",
+    "data": {
+      "filename": "string",
+      "content": "string",
+      "file_id": "string",
+      "query": "string",
+      "url": "string"
+    }
+  }
+}
 ```
 
-### Request Schema
+**Required Header:** `Authorization: Bearer YOUR_HF_TOKEN`
+
+### Modal Request Schema
 
 ```json
 {
@@ -608,7 +632,25 @@ if explicit_action == "my_tool":
 
 ## Configuration
 
-### Environment Variables (Modal Secrets)
+### HuggingFace Inference Endpoint Configuration
+
+| Setting | Value |
+|---------|-------|
+| **Endpoint URL** | `https://vs68t0qrfr3hsfp3.us-east-1.aws.endpoints.huggingface.cloud` |
+| **Model** | `travis-moore/twi-llama-v5` |
+| **GPU** | Nvidia L4 (24GB) |
+| **Region** | AWS us-east-1 |
+| **Scale-to-zero** | After 1 hour idle |
+| **Cost** | $0.80/hour while running |
+
+**Environment Variables (HuggingFace):**
+| Variable | Description |
+|----------|-------------|
+| `TAVILY_API_KEY` | Tavily web search API key |
+
+### Modal Configuration
+
+**Environment Variables (Modal Secrets):**
 
 | Secret Name | Variable | Description |
 |-------------|----------|-------------|
@@ -619,7 +661,7 @@ if explicit_action == "my_tool":
 
 ```python
 MODEL_ID = "travis-moore/twi-llama-v5"  # HuggingFace model
-GPU_CONFIG = "A100-40GB"  # Modal GPU type
+GPU_CONFIG = "A100-40GB"  # Modal GPU type (L4 for HuggingFace)
 ```
 
 ### Container Settings

@@ -23,52 +23,105 @@ Ama is a fine-tuned AI assistant that speaks **Twi** (Ghana's most widely spoken
 
 ## 🚀 Quick Start - Agent API
 
-### Live Agent Endpoint (v3 - Unified)
+Ama is available via **two endpoints** - choose based on your needs:
+
+| Endpoint | Best For | Cold Start | Cost |
+|----------|----------|------------|------|
+| **HuggingFace** | Production, lower cost | ~30-60s | $0.80/hr (GPU time) |
+| **Modal** | Development, testing | ~30-60s | ~$0.001-0.003/req |
+
+### 🤗 HuggingFace Inference Endpoint (Recommended)
+```
+https://vs68t0qrfr3hsfp3.us-east-1.aws.endpoints.huggingface.cloud
+```
+
+### ⚡ Modal Endpoint (Alternative)
 ```
 https://angeloasante--twi-ai-agent-v3-twiagent-agent.modal.run
 ```
 
-### Health Check
+### Health Check (Modal)
 ```
 https://angeloasante--twi-ai-agent-v3-health.modal.run
 ```
 
-### Basic Chat (curl)
+---
+
+## 📡 API Examples
+
+### Basic Chat - HuggingFace (curl)
+```bash
+curl -X POST https://vs68t0qrfr3hsfp3.us-east-1.aws.endpoints.huggingface.cloud \
+  -H "Authorization: Bearer YOUR_HF_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"inputs": "Wo ho te sɛn?"}'
+```
+
+### Basic Chat - Modal (curl)
 ```bash
 curl -X POST https://angeloasante--twi-ai-agent-v3-twiagent-agent.modal.run \
   -H "Content-Type: application/json" \
   -d '{"message": "Wo ho te sɛn?"}'
 ```
 
-### Python Example
+### Python Example - HuggingFace (Recommended)
 ```python
 import requests
 
-API_URL = "https://angeloasante--twi-ai-agent-v3-twiagent-agent.modal.run"
+HF_URL = "https://vs68t0qrfr3hsfp3.us-east-1.aws.endpoints.huggingface.cloud"
+HF_TOKEN = "your_huggingface_token"  # Get from huggingface.co/settings/tokens
+
+headers = {
+    "Authorization": f"Bearer {HF_TOKEN}",
+    "Content-Type": "application/json"
+}
 
 # Simple chat
-response = requests.post(API_URL, json={
+response = requests.post(HF_URL, headers=headers, json={
+    "inputs": "Hello, how are you?"
+})
+print(response.json()["response"])
+
+# With timezone
+response = requests.post(HF_URL, headers=headers, json={
+    "inputs": "What time is it?",
+    "parameters": {"timezone": "tokyo"}
+})
+data = response.json()
+print(f"Response: {data['response']}")
+print(f"Tools used: {data['tools_used']}")
+print(f"Tool results: {data['tool_results']}")
+
+# Web search (auto-triggered by keywords)
+response = requests.post(HF_URL, headers=headers, json={
+    "inputs": "Who is the president of Ghana in 2026?"
+})
+data = response.json()
+print(f"Response: {data['response']}")
+print(f"Search results: {data['tool_results'].get('web_search', {})}")
+```
+
+### Python Example - Modal (Alternative)
+```python
+import requests
+
+MODAL_URL = "https://angeloasante--twi-ai-agent-v3-twiagent-agent.modal.run"
+
+# Simple chat
+response = requests.post(MODAL_URL, json={
     "message": "Hello, how are you?"
 })
 print(response.json()["response"])
 
 # With timezone
-response = requests.post(API_URL, json={
+response = requests.post(MODAL_URL, json={
     "message": "What time is it?",
     "timezone": "tokyo"
 })
 print(response.json())
 
-# Web search (auto-triggered)
-response = requests.post(API_URL, json={
-    "message": "Who is the president of France?"
-})
-data = response.json()
-print(f"Response: {data['response']}")
-print(f"Tools used: {data['tools_used']}")
-
 # Explicit file creation
-response = requests.post(API_URL, json={
+response = requests.post(MODAL_URL, json={
     "action": "create_file",
     "data": {
         "filename": "notes.txt",
@@ -78,16 +131,21 @@ response = requests.post(API_URL, json={
 print(response.json()["result"])
 ```
 
-### JavaScript/Node.js Example
+### JavaScript/TypeScript Example
 ```javascript
-const API_URL = "https://angeloasante--twi-ai-agent-v3-twiagent-agent.modal.run";
+// HuggingFace Endpoint (Recommended)
+const HF_URL = "https://vs68t0qrfr3hsfp3.us-east-1.aws.endpoints.huggingface.cloud";
+const HF_TOKEN = "your_huggingface_token";
 
-// Simple chat
-const response = await fetch(API_URL, {
+const response = await fetch(HF_URL, {
   method: "POST",
-  headers: { "Content-Type": "application/json" },
+  headers: {
+    "Authorization": `Bearer ${HF_TOKEN}`,
+    "Content-Type": "application/json"
+  },
   body: JSON.stringify({
-    message: "Show me images of Kente cloth"
+    inputs: "Show me images of Kente cloth",
+    parameters: { timezone: "ghana" }
   })
 });
 
@@ -95,13 +153,30 @@ const data = await response.json();
 console.log(data.response);
 console.log(data.tools_used);  // ["image_search", "knowledge_base"]
 console.log(data.tool_results.image_search);  // Contains image URLs
+
+// IMPORTANT: Use tool_results for accurate real-time data!
+if (data.tool_results.web_search) {
+  console.log("Search results:", data.tool_results.web_search.results);
+}
 ```
 
 ---
 
 ## 📋 Agent API Reference
 
-### Request Format
+### HuggingFace Request Format
+```json
+{
+  "inputs": "Your message here",
+  "parameters": {
+    "timezone": "new york",
+    "action": "chat",
+    "data": {}
+  }
+}
+```
+
+### Modal Request Format
 ```json
 {
   "message": "Your message here",
@@ -324,15 +399,30 @@ This will output your endpoint URL:
 
 ---
 
-## 💰 Cost Info
+## 💰 Cost Comparison
 
+### HuggingFace Inference Endpoint (Recommended for Production)
+| Usage Pattern | Estimated Monthly Cost |
+|--------------|------------------------|
+| Light (100 requests/month, clustered) | **$1-5** |
+| Medium (500 requests/month) | **$5-20** |
+| Heavy (3000 requests/month) | **$20-50** |
+| Always-on (min_replicas=1) | ~$576 |
+
+*Billing: $0.80/hr for L4 GPU, only charged when running. Scale-to-zero after 1hr idle.*
+
+### Modal (Good for Development)
 | Service | Cost | Notes |
 |---------|------|-------|
 | Modal (A100 GPU) | ~$0.001-0.003/request | Pay per use |
-| Tavily API | Free tier: 1000/mo | Web search |
 | Cold start | ~30-60 seconds | First request after idle |
 | Warm requests | ~1-3 seconds | While container is warm |
 | Container idle | 5 min timeout | Then scales to 0 |
+
+### External APIs (Both Endpoints)
+| Service | Cost | Notes |
+|---------|------|-------|
+| Tavily API | Free tier: 1000/mo | Web search |
 
 ---
 
@@ -446,9 +536,14 @@ curl https://angeloasante--twi-ai-agent-v3-health.modal.run
 
 ## 🔗 Links
 
+### Endpoints
+- **HuggingFace (Production):** `https://vs68t0qrfr3hsfp3.us-east-1.aws.endpoints.huggingface.cloud`
+- **Modal (Development):** `https://angeloasante--twi-ai-agent-v3-twiagent-agent.modal.run`
+- **Health Check:** `https://angeloasante--twi-ai-agent-v3-health.modal.run`
+
+### Resources
 - **Model:** [huggingface.co/travis-moore/twi-llama-v5](https://huggingface.co/travis-moore/twi-llama-v5)
-- **Agent API:** [angeloasante--twi-ai-agent-v3-twiagent-agent.modal.run](https://angeloasante--twi-ai-agent-v3-twiagent-agent.modal.run)
-- **Health Check:** [angeloasante--twi-ai-agent-v3-health.modal.run](https://angeloasante--twi-ai-agent-v3-health.modal.run)
+- **HuggingFace Endpoints:** [ui.endpoints.huggingface.co](https://ui.endpoints.huggingface.co)
 - **Modal Dashboard:** [modal.com](https://modal.com)
 - **Creator:** Angelo Asante
 
