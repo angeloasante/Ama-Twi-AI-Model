@@ -2,9 +2,11 @@ name: Keep Modal Warm
 
 on:
   schedule:
-    # Run every 4 minutes to keep container warm (5 min idle timeout)
-    - cron: '*/4 * * * *'
+    # Run every 5 minutes to keep container warm
+    - cron: '*/5 * * * *'
   workflow_dispatch:  # Manual trigger for testing
+  push:
+    branches: [main]  # Run on push to verify workflow works
 
 jobs:
   warmup:
