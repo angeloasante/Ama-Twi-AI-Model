@@ -1,0 +1,23 @@
+# Cog configuration for Twi AI (Ama)
+# https://github.com/replicate/cog/blob/main/docs/yaml.md
+
+build:
+  gpu: true
+  cuda: "12.1"
+  python_version: "3.11"
+  python_packages:
+    - "torch==2.1.2"
+    - "transformers==4.44.0"
+    - "accelerate>=0.27.2"
+    - "huggingface_hub>=0.20.0"
+    - "sentencepiece>=0.1.99"
+    - "protobuf>=3.20.0"
+    - "bitsandbytes>=0.42.0"
+  run:
+    # Install flash attention for faster inference
+    - pip install flash-attn --no-build-isolation
+
+predict: "predict.py:Predictor"
+
+# Uncomment to set default image name (enables `cog push` without specifying image)
+# image: "r8.im/travis-moore/twi-llama-v5"

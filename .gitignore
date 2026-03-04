@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Model files (too large for git)
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.h5
+checkpoints/
+*.gguf
+
+# Voice data (too large)
+twi-voice/clips/
+twi-voice-full/
+twi-voice-merged/
+
+# Datasets
+*.jsonl
+*.tsv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+download_log.txt
+
+# Secrets
+.env
+*.key
+scripts/
+replicate/push_to_replicate.sh
